@@ -49,6 +49,7 @@
 
 <body onload="startTime(), refreshAt({{h}}, {{m}}, {{s}})">
     <h1>IMDB 電影投資</h1>
+    
     <a href="./personal_data/"> {{request.user.username}}你的資產：</a>
     <h3>今日股價：</h3>
     {% if request.user.is_authenticated %}

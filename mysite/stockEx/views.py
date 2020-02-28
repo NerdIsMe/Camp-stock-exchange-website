@@ -61,7 +61,7 @@ def home(request):
     date = datetime.datetime.now().astimezone(pytz.timezone('Asia/Taipei')).strftime("%Y/%m/%d %H:%M:%S")
     stocks = Stock.objects.all()
 
-    # 設定網頁自動更新時間
+    # 設定網頁自動更新時間 每個跟股價有關的 之後都要放上去
     (h, m, s) = (0, 0, 0)
     game_settings = GameSetting.objects.all()
     if len(game_settings) != 0: #已經有遊戲設定
@@ -69,7 +69,7 @@ def home(request):
         if not cur_settings.game_is_ended():#遊戲尚未結束
             cur_settings.check_reload_time() # 檢查下次更新時間
             (h, m, s) = cur_settings.js_get_reload_time()
-        re = cur_settings.get_reload_time()
+
     return render(request, 'stockEx/index.html', locals())
 
 def stock_info(request, stock_symbol):
@@ -80,6 +80,7 @@ def stock_info(request, stock_symbol):
     date_time = stock.get_date_time().astimezone(pytz.timezone('Asia/Taipei')).strftime("%Y/%m/%d %H:%M:%S")
     amount = 0
     do_modify = False
+    img_location = "images/" + str(stock.get_symbol()) + ".png"
     if request.user.is_authenticated:# 登入的情況下
         is_login = True
         user_data = UserData.objects.get(user = request.user)
@@ -90,7 +91,7 @@ def stock_info(request, stock_symbol):
             is_hold = True
             holdings = tempt[0]
             market_value = holdings.compute_market_value(price)
-            delta = holdings.get_average_cost() - price
+            delta = price - holdings.get_average_cost()
         
         #收到request
         if request.method == 'POST':
@@ -127,12 +128,13 @@ def stock_info(request, stock_symbol):
                     holdings.save()
                 else:#先前沒買過股票
                     holdings = UserStockHolding.objects.create(user = request.user, average_cost = price,
-                                    company = stock.get_company(), holdings = amount, total_cost = price * amount)
+                                    company = stock.get_company(), holdings = amount, 
+                                    stock_symbol = stock.get_symbol(), total_cost = price * amount)
                     is_hold = True
                 # upadate 資料
                 holdings = UserStockHolding.objects.get(user = request.user, company = stock.get_company())
                 market_value = holdings.compute_market_value(price)
-                delta = holdings.get_average_cost() - price
+                delta = price - holdings.get_average_cost()
                 cur_deposit = user_data.get_cash()
 
             elif 'sell_confirmed' in request.POST:# 確認賣出
@@ -147,21 +149,29 @@ def stock_info(request, stock_symbol):
                     is_hold = False
                 # upadate 資料
                 market_value = holdings.compute_market_value(price)
-                delta = holdings.get_average_cost() - price
+                delta = price - holdings.get_average_cost()
                 cur_deposit = user_data.get_cash()
-        return render(request, 'stockEx/stock_info.html', locals())
-        
+    return render(request, 'stockEx/stock_info.html', locals())
+
 @login_required
 def personal_data(request):
     user_data = UserData.objects.get(user = request.user)
     user = User.objects.get(username = request.user)
     stocks_market_value = 0
+
     #計算股票市值
     user_stocks = user.userstockholding_set.all()
     if len(user_stocks) != 0: #擁有股票
+        stock_prices = []
+        delta = []
+        market_value = []
         for i in user_stocks:
             price = Stock.objects.get(company = i.get_company()).get_price()
+            stock_prices.append(price)
+            delta.append(price - i.get_average_cost())
+            market_value.append(i.compute_market_value(price))
             stocks_market_value += i.compute_market_value(price)
+        user_stocks = zip(user_stocks, stock_prices, delta, market_value)
     total_assets = stocks_market_value + user_data.get_cash()
     return render(request, 'stockEx/personal_data.html', locals())
     
@@ -230,7 +240,7 @@ def gamereset(request):
                                             interval = interval, reload_time = start_time)
             stocks = Stock.objects.all()
             for stock in stocks:
-                    stock.start_settings(start_time)
+                    stock.start_settings(start_time)# 設定開始時間以及股價歸零
                     stock.save()
             HistStockData.objects.all().delete()
             return HttpResponseRedirect('/home/game_status/')

@@ -28,17 +28,25 @@
 <h2>持有股票：</h2>
 <table>
     <tr>
+        <th>股票代碼</th>
         <th>公司</th>
         <th>持有張數</th>
         <th>平均成本</th>
+        <th>及時價格</th>
+        <th>價差</th>
         <th>總成本</th>
+        <th>市值</th>
     </tr>
-{%for i in user.userstockholding_set.all %}
+{%for i, price, delta, market_value in user_stocks %}
         <tr>
+            <td><a href="/home/{{i.stock_symbol}}">{{i.stock_symbol}}</a></td>
             <td>{{i.company}}</td>
             <td>{{i.holdings}}張</td>
             <td>{{i.average_cost}}元</td>
+            <td>{{price}}元</td>
+            <td>{{delta}}元</td>
             <td>{{i.total_cost}}元</td>
+            <td>{{market_value}}元</td>
         </tr>
     {%endfor%}
 </table>

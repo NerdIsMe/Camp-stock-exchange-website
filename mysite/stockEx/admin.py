@@ -25,7 +25,7 @@ class TransactionRecordAdmin(admin.ModelAdmin):
     list_display = ('user', 'date_time', 'amount')
 
 class UserStockHoldingAdmin(admin.ModelAdmin):
-    list_display = ('user', 'company', 'holdings', 'average_cost', 'total_cost')
+    list_display = ('user', 'stock_symbol', 'company', 'holdings', 'average_cost', 'total_cost')
     search_fields = ['user__username',]
 
 
