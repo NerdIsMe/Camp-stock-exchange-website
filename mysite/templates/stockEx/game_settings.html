@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <title>修改遊戲設定</title>
+
+</head>
+
+<body>
+    <form action=" " method="POST"> {% csrf_token %}
+        <table>
+            <tr>
+                <th>遊戲開始時間：</th>
+                <td>{{start_time}}</td>
+            </tr>
+            <tr>
+                <th>遊戲結束時間：</th>
+                <td><input type="datetime-local" name = 'end_time' value= {{end_time}} required></td>
+            </tr>
+            <tr>
+                <th>股價時間間隔：</th>
+                <td>{{form.interval}}分鐘</td>
+            </tr>
+        </table>
+        <input type="submit" value="修改">
+        <input type = 'button' value="返回" onclick="location.href = '../'">
+    </form>
+</body>

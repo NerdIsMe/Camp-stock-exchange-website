@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <title>註冊</title>
+</head>
+
+<body>
+    <h2>建立你個股票帳戶</h2>
+    <form action = '' method="POST"> {% csrf_token %}
+        <table>
+            <tr>
+                <td>第{{user_data.team}}小隊</td>
+                <td>  姓名：{{user_data.name}}</td>
+            </tr>
+
+        </table>
+        {{new_user.as_ul}}
+        <td><input type="submit" value="註冊"></td>
+    </form>
+    <br>
+
+    <p>已經有帳戶了？</p>
+    <a href="../login/">按此登入</a>
+   
+</body>

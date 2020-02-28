@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <title>遊戲重設</title>
+
+</head>
+
+<body>
+
+    <h2>重設遊戲設定：</h2>
+    {{s}}
+    <form action="", method="POST"> {%csrf_token%}
+        <table>
+            <tr>
+                <th><label for="start_time">遊戲開始時間：</label></th>
+                <td><input type="datetime-local" name="start_time" value="2020-02-20T13:30" required></td>
+            </tr>
+            <tr>
+                <th>遊戲時間長度：</th>
+                <td>{{form.span}}分鐘</td>
+            </tr>
+            <tr>
+                <th>股價時間間隔：</th>
+                <td>{{form.interval}}分鐘</td>
+            </tr>
+        </table>
+
+
+        <p>暫停交易(還沒) & 遊戲終止(還沒)</p>
+        <input type="submit" value="送出">
+        <input type = 'button' value="返回" onclick="location.href = '../'">
+        
+    </form>
+</body>

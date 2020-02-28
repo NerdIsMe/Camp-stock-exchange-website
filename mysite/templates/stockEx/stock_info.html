@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <title>{{stock.company}}({{stock.stock_symbol}})</title>
+    <script type="text/javascript">
+
+        $("#sell").click(function(){
+        
+        $("input").prop("disabled",false);
+        
+        });
+        $("#buy").click(function(){
+        
+        $("input").prop("disabled",false);
+        
+        });
+        </script>
+</head>
+
+<body>
+    <h1>{{stock.company}}({{stock.stock_symbol}})股票資料：</h1>
+    <table>
+        <tr>
+            <th>股票代碼</th>
+            <th>公司</th>
+            <th>時間</th>
+            <th>股價</th>
+            <th>成長率</th>
+            <th>交易量</th>
+        </tr>
+        <tr>
+            <td>{{stock.stock_symbol}}</td>
+            <td>{{stock.company}}</td>
+            <td>{{date_time}}</td>
+            <td>{{stock.price}}</td>
+            <td>{{stock.growth_rate}}</td>
+            <td>{{stock.volume}}</td>
+        </tr>
+    </table>
+    <form method="POST"> {%csrf_token%}
+        
+        {% if compute %}
+            <input type="number" id="amount" name="amount" value={{amount}} required readonly='value'>
+            <p>{{computation}}</p>
+            <p>{{cash_compute}}</p>
+            {%if buy%}
+                <input type="submit" id="buy_modify" name = 'buy_modify' value="修改">
+                {%if not_enough_cash %}
+                    <p style="color: red;">銀行存款不足，無法購買！</p>
+                {% else %}
+                    <input type="submit" id = 'buy_confirmed' name= 'buy_confirmed' value="購買確認">
+                {%endif%}
+            {%elif sell%}
+                <input type="submit" id="sell_modify" name = 'sell_modify' value="修改">
+                {%if not_enough_holdings %}
+                    <p style="color: red;">持有張數不足，無法售出！</p>
+                {% else %}
+                <input type="submit" id= 'sell_confirmed' name='sell_confirmed' value="確認賣出" >
+                {%endif%}
+            {%endif%}
+        {%else%}
+            <p><input type="number" id="amount" name="amount" value={{amount}} required min="1">張</p>
+            {% if do_modify %}
+                <p>{{computation}}</p>
+                <p>{{cash_compute}}</p>
+            {%endif%}
+            <input type="submit" id="buy" name ='buy' value = '購買'>
+            <input type ="submit" id='sell' name='sell' value = '售出'>
+        {%endif%}
+    <h3>你持有的銀行存款：</h3>
+    <p>{{cur_deposit}}元</p>
+    {%if is_hold%}
+        <h3>你持有的{{stock.company}}股票：</h3>
+        <table>
+            <tr>
+                <th>公司</th>
+                <th>持有張數</th>
+                <th>平均成本</th>
+                <th>及時價格</th>
+                <th>價差</th>
+                <th>總成本</th>
+                <th>市值</th>
+            </tr>
+            <tr>
+                <td>{{holdings.company}}</td>
+                <td>{{holdings.holdings}}張</td>
+                <td>{{holdings.average_cost}}</td>
+                <td>{{stock.price}}</td>
+                <td>{{delta}}</td>
+                <td>{{holdings.total_cost}}</td>
+                <td>{{market_value}}</td>
+            </tr>
+        </table>
+    {%endif%}
+    <input type="button" value="返回" onclick="location.href = './'">
+    </form>
+</body>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8" http-equiv="refresh" content="10">
+    <title>遊戲狀態</title>
+    <script src="{{js}}" async></script>
+</head>
+
+<body onload="startTime()">
+    
+    <h2>當前遊戲狀態：</h2>
+    {%if g_status == 0%} <p style="color: red;">尚未開始</p> {%endif%}
+    {%if g_status == 1%} <p style="color: green;">進行中</p> {%endif%}
+    {%if g_status == 2%} <p style="color: red;">已結束</p> {%endif%}
+
+    <table>
+        {% if is_setted %}
+            <tr>
+                <th>現在時間：</th>
+                <td id = 'txt'></td>
+            </tr>
+            <tr>
+                <th>遊戲開始時間：</th>
+                <td>{{cur_start_time}}</td>
+            </tr>
+                <th>遊戲結束時間：</th>
+                <td>{{cur_end_time}}</td>
+            </tr>
+            <tr>
+                <th>遊戲時間長度：</th>
+                <td>{{cur_span}}</td>
+            </tr>
+            <tr>
+                <th>股價時間間隔：</th>
+                <td>{{cur_interval}}分鐘</td>
+            </tr>
+        {%else%}
+            <tr>
+                <th>遊戲開始時間：</th>
+                <td>----------</td>
+            </tr>
+            <tr>
+                <th>遊戲時間長度：</th>
+                <td>---分鐘</td>
+            </tr>
+            <tr>
+                <th>股價時間間隔：</th>
+                <td>---分鐘</td>
+            </tr>
+            <p style="color: red;">尚未設定遊戲</p>
+        {%endif%}
+    </table>
+    <input type="button" value="Reset" onclick="location.href='./reset'">
+    <input type="button" value="遊戲設定" onclick="location.href='./settings'">
+    <input type = 'button' value="返回首頁" onclick="location.href = '../'">
+</body>
