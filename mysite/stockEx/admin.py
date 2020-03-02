@@ -20,6 +20,7 @@ class HistStockDataAdmin(admin.ModelAdmin):
     list_display = ('date_time', 'get_company', 'price', 'growth_rate', 'volume')
     list_filter = ('date_time',)
     get_company.short_description = '公司'  # 修改表頭名稱
+    search_fields = ('stock__company', )
 
 class TransactionRecordAdmin(admin.ModelAdmin):
     list_display = ('user', 'date_time', 'amount')

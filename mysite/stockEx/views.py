@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from .forms import LoginForm, RegisterForm, GameResetForm, GameSettingForm, StockPurchaseForm
+from .forms import LoginForm, RegisterForm, GameResetForm, GameSettingForm, StockPurchaseForm, DepositForm
 from django.contrib import auth
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from .models import *
@@ -23,25 +24,14 @@ def to_datetime(s):
     return time_tz
 
 def do_compute(amount, price, cash, type):
-    '''
-    compute = ['-' for i in range(len(stocks))]
-    ss = [('s'+str(i+1)) for i in range(len(stocks))]
-    for i in range(len(stocks)):
-        tempt = stock_purchase[ss[i]].value()
-        s = int(tempt)
-        if s != 0:
-            price = int(stocks[i].get_price())
-            total = s * price
-            compute[i] = str(s) + '(張) x ' + str(price) + '(元) = ' + str(total) + '元'
-    '''
     if type == 'buy':
-        total = amount * price
-        after_cash = cash - total
+        total = round(amount * price, 2)
+        after_cash = round(cash - total, 2)
         compute = '支出：' + str(amount) + '(張) x ' + str(price) + '(元) = 共' + str(total) + '元'
         cash_compute = '現金餘額：' + str(cash) + "元 → " + str(after_cash) + '元'
     elif type == 'sell':
-        total = amount * price
-        after_cash = cash + total
+        total = round(amount * price, 2)
+        after_cash = round(cash + total, 2)
         compute = '獲得：' + str(amount) + '(張) x ' + str(price) + '(元) = 共' + str(total) + '元'
         cash_compute = '銀行帳戶餘額：' + str(cash) + "元 → " + str(after_cash) + '元'
     return (compute, cash_compute)
@@ -53,35 +43,64 @@ def compute_total(amount, price):
     for i in range (0, len(stocks)):
         total += int(stock_purchase[ss[i]].value()) * stocks[i].get_price()
     '''
-    total = amount * price
+    total = round(amount * price, 2)
     return total
 
-# Create your views here.
-def home(request):
-    date = datetime.datetime.now().astimezone(pytz.timezone('Asia/Taipei')).strftime("%Y/%m/%d %H:%M:%S")
-    stocks = Stock.objects.all()
-
-    # 設定網頁自動更新時間 每個跟股價有關的 之後都要放上去
+def get_reload_time(is_superuser=False):
     (h, m, s) = (0, 0, 0)
     game_settings = GameSetting.objects.all()
     if len(game_settings) != 0: #已經有遊戲設定
         cur_settings = GameSetting.objects.last()
         if not cur_settings.game_is_ended():#遊戲尚未結束
-            cur_settings.check_reload_time() # 檢查下次更新時間
-            (h, m, s) = cur_settings.js_get_reload_time()
+            if is_superuser:
+                cur_settings.check_reload_time() # only super user檢查下次更新時間，避免太多人同時刷新股價 會出錯
+                (h, m, s) = cur_settings.js_get_reload_time(is_superuser=True)
+            else:
+                (h, m, s) = cur_settings.js_get_reload_time(is_superuser)
+    return (h, m, s)
 
+# Create your views here.
+def home(request):
+    date = datetime.datetime.now().astimezone(pytz.timezone('Asia/Taipei')).strftime("%Y/%m/%d %H:%M:%S")
+    stocks = Stock.objects.all()
+    
+    is_positive = []
+    deltas = []
+    growth_rates = []
+    for i in stocks:
+        # 單股變化量
+        delta = round(i.price - i.price/(1+i.growth_rate), 2)
+        growth_rates.append(str(abs(round(i.growth_rate*100, 2))) + '%')
+        if i.growth_rate < 0:
+            is_positive.append(False)
+        else:
+            is_positive.append(True)
+            delta = '+' + str(delta)
+        deltas.append(delta)
+
+    # 設定網頁自動更新時間
+    (h, m, s) = get_reload_time()
+    stocks = zip(is_positive, deltas, growth_rates, stocks)
     return render(request, 'stockEx/index.html', locals())
 
 def stock_info(request, stock_symbol):
-    is_login = False
-    compute = False
+    # 設定網頁自動更新時間 每個跟股價有關的 之後都要放上去
+    (h, m, s) = get_reload_time()
+    #is_login = False, do_modify = False, compute = False
     stock = Stock.objects.get(stock_symbol = stock_symbol)
     price = stock.get_price()
     date_time = stock.get_date_time().astimezone(pytz.timezone('Asia/Taipei')).strftime("%Y/%m/%d %H:%M:%S")
     amount = 0
-    do_modify = False
+    # image
     img_location = "images/" + str(stock.get_symbol()) + ".png"
-    if request.user.is_authenticated:# 登入的情況下
+    stock.check_img()# 確認圖畫出來了沒
+
+    if request.user.is_superuser:
+        if 'plot' in request.POST:#管理員有權使網頁重新繪圖
+            stock.draw_new_plot()
+        return render(request, 'stockEx/stock_info.html', locals())
+
+    if request.user.is_authenticated:# 一般使用者登入
         is_login = True
         user_data = UserData.objects.get(user = request.user)
         is_hold = False
@@ -134,7 +153,7 @@ def stock_info(request, stock_symbol):
                 # upadate 資料
                 holdings = UserStockHolding.objects.get(user = request.user, company = stock.get_company())
                 market_value = holdings.compute_market_value(price)
-                delta = price - holdings.get_average_cost()
+                delta = round(price - holdings.get_average_cost(),2)
                 cur_deposit = user_data.get_cash()
 
             elif 'sell_confirmed' in request.POST:# 確認賣出
@@ -149,7 +168,7 @@ def stock_info(request, stock_symbol):
                     is_hold = False
                 # upadate 資料
                 market_value = holdings.compute_market_value(price)
-                delta = price - holdings.get_average_cost()
+                delta = round(price - holdings.get_average_cost(), 2)
                 cur_deposit = user_data.get_cash()
     return render(request, 'stockEx/stock_info.html', locals())
 
@@ -158,20 +177,27 @@ def personal_data(request):
     user_data = UserData.objects.get(user = request.user)
     user = User.objects.get(username = request.user)
     stocks_market_value = 0
-
+    #網頁更新時間
+    (h, m, s) = get_reload_time()
     #計算股票市值
     user_stocks = user.userstockholding_set.all()
     if len(user_stocks) != 0: #擁有股票
         stock_prices = []
-        delta = []
-        market_value = []
+        is_positive = []
+        deltas = []
+        market_values = []
         for i in user_stocks:
             price = Stock.objects.get(company = i.get_company()).get_price()
-            stock_prices.append(price)
-            delta.append(price - i.get_average_cost())
-            market_value.append(i.compute_market_value(price))
+            stock_prices.append(price)# 股價
+            delta = price - i.get_average_cost()
+            if delta < 0:
+                is_positive.append(False)
+            else:
+                is_positive.append(True)
+            deltas.append(abs(delta)) #平均成本-股價 價差
+            market_values.append(i.compute_market_value(price))#持有股票市值
             stocks_market_value += i.compute_market_value(price)
-        user_stocks = zip(user_stocks, stock_prices, delta, market_value)
+        user_stocks = zip(user_stocks, stock_prices, is_positive, deltas, market_values)
     total_assets = stocks_market_value + user_data.get_cash()
     return render(request, 'stockEx/personal_data.html', locals())
     
@@ -240,7 +266,7 @@ def gamereset(request):
                                             interval = interval, reload_time = start_time)
             stocks = Stock.objects.all()
             for stock in stocks:
-                    stock.start_settings(start_time)# 設定開始時間以及股價歸零
+                    stock.start_settings(start_time)# 設定開始時間、圖片重畫時間、股價歸零
                     stock.save()
             HistStockData.objects.all().delete()
             return HttpResponseRedirect('/home/game_status/')
@@ -295,3 +321,53 @@ def gamesettings(request):
     form = GameSettingForm()
     return render(request, 'stockEx/game_settings.html', locals())
 
+# 股價更新以這個網頁為主
+@login_required
+def update_stock(request):
+    if not request.user.is_superuser:
+        return HttpResponseRedirect('/home/')
+    (h, m, s) = get_reload_time(is_superuser = True)
+    return render(request, 'stockEx/update_stock.html', locals())
+
+
+@login_required
+def search_userdata(request):
+    if not request.user.is_superuser:
+        return HttpResponseRedirect('/home/')
+    # 查詢帳戶資料：
+    if 'chinese_name' in request.GET:
+        searched = True
+        name = request.GET['chinese_name']
+        user_data = UserData.objects.filter(name = name)
+    
+    return render(request, 'stockEx/search_userdata.html', locals())
+
+@login_required
+def modify_deposit(request, username):
+    if not request.user.is_superuser:
+        return HttpResponseRedirect('/home/')
+
+    user_data = UserData.objects.get(user = User.objects.get(username=username))
+    if request.method == 'POST':
+        form = DepositForm(request.POST)
+        amount = int(form['amount'].value())
+        submitted = True
+        if form.is_valid:
+            if form['choice_type'].value() == 'save':# 選擇存款
+                user_data.modify_cash(amount)
+                msg = "你已成功存入" + str(amount) + '元'
+            else:# 選擇題款
+                if user_data.get_cash() < amount: #不夠錢提款
+                    not_enough_deposit = True
+                    msg = "銀行金額不足，無法領取" + int(amount) + '元'
+                else:#可以提款
+                    user_data.modify_cash(-amount)
+                    msg = "你已成功提領" + str(amount) + '元'
+            user_data.save()
+            
+    form = DepositForm()
+    return render(request, 'stockEx/modify_deposit.html', locals())
+    
+
+
+    

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <title>銀行存/取款</title>
+</head>
+<body>
+    <h1>銀行存取款：</h1>
+    
+    <form method="GET">
+        <table>
+            <tr>
+                <th>銀行戶名：</th>
+                <td><input type="text" required name = 'chinese_name'></td>
+                <td><input type ="submit" value="查詢"></td>
+            </tr>
+        </table>
+    </form>
+    {%if searched %}
+    <p>搜尋結果如下：</p>
+        <table>
+            {%for i in user_data %}
+            <tr>
+                <th>id：</th>
+                <th>姓名：</th>
+                <th>組別：</th>
+                <th>存款：</th>
+            </tr>
+            <tr>
+                <td><a href="./{{i.user.username}}">{{i.user.username}}</a></td>
+                <td>{{i.name}}</td>
+                <td>{{i.team}}</td>
+                <td>{{i.cash|floatformat:2}}元</td>
+            </tr>
+            {%endfor%}
+        </table>
+    {%endif%}
+</body>

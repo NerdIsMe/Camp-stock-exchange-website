@@ -1,12 +1,14 @@
 <!DOCTYPE html>
-{% load static %}
+{%load static%}
 <head>
     <meta charset="utf-8">
     <title>{{stock.company}}({{stock.stock_symbol}})</title>
+    <script type="text/javascript" src= "{%static "js/stock_info.js" %}"></script>
 </head>
 
-<body>
+<body onload="startTime(), refreshAt({{h}}, {{m}}, {{s}})">
     <h1>{{stock.company}}({{stock.stock_symbol}})股票資料：</h1>
+    <p id="txt"></p>
     <table>
         <tr>
             <th>股票代碼</th>
@@ -25,7 +27,7 @@
             <td>{{stock.volume}}</td>
         </tr>
     </table>
-    <img src={%static img_location %} alt="{{stock.stock_symbol}}" />
+    <img src={%static img_location %} alt="{{stock.stock_symbol}}" width="650" height="425"/>
     {%if is_login%}
         <form method="POST"> {%csrf_token%}
             
@@ -74,15 +76,19 @@
                 <tr>
                     <td>{{holdings.company}}</td>
                     <td>{{holdings.holdings}}張</td>
-                    <td>{{holdings.average_cost}}</td>
-                    <td>{{stock.price}}</td>
-                    <td>{{delta}}</td>
-                    <td>{{holdings.total_cost}}</td>
+                    <td>{{holdings.average_cost|floatformat:2}}</td>
+                    <td>{{stock.price|floatformat:2}}</td>
+                    <td>{{delta|floatformat:2}}</td>
+                    <td>{{holdings.total_cost|floatformat:2}}</td>
                     <td>{{market_value}}</td>
                 </tr>
             </table>
         {%endif%}
         <input type="button" value="我的資產" onclick="location.href = '/home/personal_data'">
+        </form>
+    {%elif request.user.is_superuser%}
+        <form method="POST"> {%csrf_token%}
+            <input type="submit" value="重畫股價走勢圖" name = 'plot'>
         </form>
     {%else%}
         <input type = 'button' value="登入" onclick="location.href = 'accounts/login/'">

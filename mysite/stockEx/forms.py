@@ -8,6 +8,9 @@ INTERVAL_CHOICES = [
      (1, '1'), (5, '5'), (10, '10'), (12, '12'), (15, '15'), (20, '20'), 
     (25, '25'), (30, '30')
 ]
+DEPOSIT_CHOICES = [
+    ('save', '存款'), ('withdrawal', '提款')
+]
 
 class LoginForm(forms.Form):
     username = forms.CharField(max_length = 30)
@@ -37,3 +40,7 @@ class StockPurchaseForm(forms.Form):
     s8 = forms.IntegerField(min_value = 0, initial = 0)
     s9 = forms.IntegerField(min_value = 0, initial = 0)
     s10 = forms.IntegerField(min_value = 0, initial = 0)
+
+class DepositForm(forms.Form):
+    choice_type = forms.ChoiceField(choices= DEPOSIT_CHOICES)
+    amount = forms.IntegerField(min_value = 0)

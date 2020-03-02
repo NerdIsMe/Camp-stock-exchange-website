@@ -1,50 +1,9 @@
 <!DOCTYPE html>
+{%load static%}
 <head>
     <meta charset="utf-8">
     <title>IMDB 電影投資</title>
-    <script type="text/javascript">
-        function refreshAt(hours, minutes, seconds) {
-                var now = new Date();
-                var then = new Date();
-
-                if(now.getHours() > hours ||
-                (now.getHours() == hours && now.getMinutes() > minutes) ||
-                    now.getHours() == hours && now.getMinutes() == minutes && now.getSeconds() >= seconds) {
-                    then.setDate(now.getDate() + 1);
-                }
-                then.setHours(hours);
-                then.setMinutes(minutes);
-                then.setSeconds(seconds);
-
-                var timeout = (then.getTime() - now.getTime());
-                setTimeout(function() { window.location.reload(true); }, timeout);
-            
-        }
-        var date = new Date();
-        date.yyyymmdd();
-        function startTime() {
-          var today = new Date();
-          var y = today.getFullYear();
-          var mon = (today.getMonth()+1);
-          var d = today.getDate();
-          var h = today.getHours();
-          var m = today.getMinutes();
-          var s = today.getSeconds();
-          mon = checkTime(mon),
-          d = checkTime(d);
-          m = checkTime(m);
-          s = checkTime(s);
-          document.getElementById('txt').innerHTML = 
-          y +'/' + mon +'/'+ d+ ' ' + h + ":" + m + ":" + s;
-        
-          var t = setTimeout(startTime, 500);
-        }
-        function checkTime(i) {
-          if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
-          return i;
-        }
-        //refreshAt(13, 57, 40);
-    </script>
+    <script type="text/javascript" src= "{%static "js/index.js" %}"></script>
 </head>
 
 <body onload="startTime(), refreshAt({{h}}, {{m}}, {{s}})">
@@ -56,6 +15,7 @@
         <a href="../accounts/logout/">登出</a>
         {% if request.user.is_superuser %}
             <a href="./game_status/">遊戲狀態</a>
+            <a href="./search_userdata/">查詢個人資料</a>
         {% endif %}
     {% else %}
         <a href="../accounts/login/">登入</a>
@@ -75,16 +35,23 @@
             <th>公司</th>
             <th>日期</th>
             <th>股價</th>
-            <th>成長率</th>
+            <th>變化</th>
+            <th>幅度</th>
             <th>交易量</th>
         </tr>
-                {% for stock in stocks %}
+                {% for is_positive, delta, growth_rate, stock in stocks %}
                     <tr>
                         <td><a href='./{{stock.stock_symbol}}'>{{stock.stock_symbol}}</a></td>
                         <td>{{stock.company}}</td>
                         <td>{{stock.date_time}}</td>
                         <td>{{stock.price}}</td>
-                        <td>{{stock.growth_rate}}</td>
+                        {%if is_positive %}
+                            <td style="color: red;">{{delta}}</td>
+                            <td style="color: red;">{{growth_rate}}&uarr;</td>
+                        {%else%}
+                            <td style="color: green;">{{delta}}</td>
+                            <td style="color: green;">{{growth_rate}}&darr;</td>
+                        {%endif%}
                         <td>{{stock_volume}}</td>
                     </tr>
                 {% endfor %}

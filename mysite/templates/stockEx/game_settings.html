@@ -1,13 +1,18 @@
 <!DOCTYPE html>
+{%load static%}
 <head>
     <meta charset="utf-8">
     <title>修改遊戲設定</title>
-
+    <script type="text/javascript" src="{%static "js/game_reset.js" %}"></script>
 </head>
 
-<body>
+<body onload="startTime()">
     <form action=" " method="POST"> {% csrf_token %}
         <table>
+            <tr>
+                <th>現在時間：</th>
+                <td id = 'txt'></td>
+            </tr>
             <tr>
                 <th>遊戲開始時間：</th>
                 <td>{{start_time}}</td>
@@ -18,7 +23,7 @@
             </tr>
             <tr>
                 <th>股價時間間隔：</th>
-                <td>{{form.interval}}分鐘</td>
+                <td>{{form.interval}}分鐘（目前設定為{{interval}}分鐘）</td>
             </tr>
         </table>
         <input type="submit" value="修改">

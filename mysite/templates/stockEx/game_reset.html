@@ -1,16 +1,20 @@
 <!DOCTYPE html>
+{%load static%}
 <head>
     <meta charset="utf-8">
     <title>遊戲重設</title>
-
+    <script type="text/javascript" src="{%static 'js/game_reset.js'%}"></script>
 </head>
 
-<body>
-
+<body onload="startTime()">
     <h2>重設遊戲設定：</h2>
     {{s}}
     <form action="", method="POST"> {%csrf_token%}
         <table>
+            <tr>
+                <th>現在時間：</th>
+                <td id="txt"></td>
+            </tr>
             <tr>
                 <th><label for="start_time">遊戲開始時間：</label></th>
                 <td><input type="datetime-local" name="start_time" value="2020-02-28T23:30" required></td>

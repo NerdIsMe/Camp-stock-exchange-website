@@ -19,13 +19,16 @@ from stockEx.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('home/', home),
-    path('home/<int:stock_symbol>', stock_info),
     path('accounts/login/', login),
     path('accounts/logout/', logout),
     path('accounts/register/', register),
+    path('home/', home),
+    path('home/<int:stock_symbol>', stock_info),
+    path('home/search_userdata/', search_userdata),
+    path('home/search_userdata/<str:username>', modify_deposit),
     path('home/game_status/', gamestatus),
     path('home/game_status/reset/', gamereset),
     path('home/game_status/settings/', gamesettings),
     path('home/personal_data/', personal_data),
+    path('update_stock/', update_stock),
 ]

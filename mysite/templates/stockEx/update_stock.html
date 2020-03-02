@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+{%load static%}
+<head>
+    <meta charset="utf-8">
+    <title>股價更新用</title>
+    <script type="text/javascript" src="{%static "js/update_stock.js"%}"></script>
+</head>
+
+<body onload="startTime(), refreshAt({{h}}, {{m}}, {{s}})">
+    <h1>股價更新用 勿關閉此網站！！</h1>
+    <table>
+        <tr id="txt"></tr>
+    </table>
+    <p id="txt"></p>
+</body>

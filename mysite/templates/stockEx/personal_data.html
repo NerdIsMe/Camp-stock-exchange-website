@@ -1,10 +1,12 @@
 <!DOCTYPE html>
+{%load static%}
 <head>
-    <meta charset="utf-8" http-equiv="refresh" content="60">
+    <meta charset="utf-8">
     <title>個人資料</title>
+    <script type="text/javascript" src = "{%static "js/personal_data.js"%}"></script>
 </head>
 
-<body>
+<body onload="refreshAt({{h}}, {{m}}, {{s}})">
 <h1>{{user_data.name}}的個人資料：</h1>
 <table>
     <tr>
@@ -13,15 +15,15 @@
     </tr>
     <tr>
         <td>現金餘額</td>
-        <td>：{{user_data.cash}}元</td>
+        <td>：{{user_data.cash|floatformat:2}}元</td>
     </tr>
     <tr>
         <td>股票資產</td>
-        <td>：{{stocks_market_value}}元</td>
+        <td>：{{stocks_market_value|floatformat:2}}元</td>
     </tr>
     <tr>
         <td>總資產</td>
-        <td>：{{total_assets}}元</td>
+        <td>：{{total_assets|floatformat:2}}元</td>
     </tr>
 </table>
 
@@ -37,15 +39,19 @@
         <th>總成本</th>
         <th>市值</th>
     </tr>
-{%for i, price, delta, market_value in user_stocks %}
+{%for i, price, is_positive, delta, market_value in user_stocks %}
         <tr>
             <td><a href="/home/{{i.stock_symbol}}">{{i.stock_symbol}}</a></td>
             <td>{{i.company}}</td>
             <td>{{i.holdings}}張</td>
-            <td>{{i.average_cost}}元</td>
+            <td>{{i.average_cost|floatformat:2}}元</td>
             <td>{{price}}元</td>
-            <td>{{delta}}元</td>
-            <td>{{i.total_cost}}元</td>
+            {%if is_positive%}
+                <td style="color: red;">&#9650;{{delta|floatformat:2}}</td>
+            {%else%}
+            <td style="color:green">&#9660;{{delta|floatformat:2}}</td>
+            {%endif %}
+            <td>{{i.total_cost|floatformat:2}}元</td>
             <td>{{market_value}}元</td>
         </tr>
     {%endfor%}
