@@ -61,6 +61,9 @@ def get_reload_time(is_superuser=False):
 
 # Create your views here.
 def home(request):
+    return render(request, 'stockEx/index.html', locals())
+
+def stocks(request):
     date = datetime.datetime.now().astimezone(pytz.timezone('Asia/Taipei')).strftime("%Y/%m/%d %H:%M:%S")
     stocks = Stock.objects.all()
     
@@ -81,7 +84,7 @@ def home(request):
     # 設定網頁自動更新時間
     (h, m, s) = get_reload_time()
     stocks = zip(is_positive, deltas, growth_rates, stocks)
-    return render(request, 'stockEx/index.html', locals())
+    return render(request, 'stockEx/stocks.html', locals())
 
 def stock_info(request, stock_symbol):
     # 設定網頁自動更新時間 每個跟股價有關的 之後都要放上去
@@ -150,11 +153,14 @@ def stock_info(request, stock_symbol):
                                     company = stock.get_company(), holdings = amount, 
                                     stock_symbol = stock.get_symbol(), total_cost = price * amount)
                     is_hold = True
-                # upadate 資料
+                ''' upadate 資料
                 holdings = UserStockHolding.objects.get(user = request.user, company = stock.get_company())
                 market_value = holdings.compute_market_value(price)
                 delta = round(price - holdings.get_average_cost(),2)
                 cur_deposit = user_data.get_cash()
+                '''
+                cur = '/home/stocks/' + str(stock.get_symbol())
+                return HttpResponseRedirect(cur)
 
             elif 'sell_confirmed' in request.POST:# 確認賣出
                 compute = False
@@ -166,10 +172,13 @@ def stock_info(request, stock_symbol):
                 if holdings.get_holdings() == 0: #賣完後，未持有股票
                     holdings.delete()
                     is_hold = False
-                # upadate 資料
+                ''' upadate 資料
                 market_value = holdings.compute_market_value(price)
                 delta = round(price - holdings.get_average_cost(), 2)
                 cur_deposit = user_data.get_cash()
+                '''
+                cur = '/home/stocks/' + str(stock.get_symbol())
+                return HttpResponseRedirect(cur)
     return render(request, 'stockEx/stock_info.html', locals())
 
 @login_required
@@ -204,9 +213,8 @@ def personal_data(request):
 def login(request):
     if request.user.is_authenticated:
         return HttpResponseRedirect('/home/')
-
-    login_failed = False
-    if request.method == 'POST':
+    # 登入
+    elif 'login' in request.POST:
         form = LoginForm(request.POST)
         if form.is_valid():
             username = form["username"].value()
@@ -214,12 +222,11 @@ def login(request):
             user = auth.authenticate(username = username, password = password)
             if user != None and user.is_active:
                 auth.login(request, user)
-
                 return HttpResponseRedirect('/home/')
             else:
                 login_failed = True
-    else:
-        form = LoginForm()
+    #reload page
+    form = LoginForm()
     return render(request, 'stockEx/login.html', locals())
 
 @login_required
@@ -329,7 +336,6 @@ def update_stock(request):
     (h, m, s) = get_reload_time(is_superuser = True)
     return render(request, 'stockEx/update_stock.html', locals())
 
-
 @login_required
 def search_userdata(request):
     if not request.user.is_superuser:
@@ -338,7 +344,7 @@ def search_userdata(request):
     if 'chinese_name' in request.GET:
         searched = True
         name = request.GET['chinese_name']
-        user_data = UserData.objects.filter(name = name)
+        user_data = UserData.objects.filter(name__contains = name)
     
     return render(request, 'stockEx/search_userdata.html', locals())
 
@@ -359,7 +365,7 @@ def modify_deposit(request, username):
             else:# 選擇題款
                 if user_data.get_cash() < amount: #不夠錢提款
                     not_enough_deposit = True
-                    msg = "銀行金額不足，無法領取" + int(amount) + '元'
+                    msg = "銀行金額不足，無法領取" + str(amount) + '元'
                 else:#可以提款
                     user_data.modify_cash(-amount)
                     msg = "你已成功提領" + str(amount) + '元'

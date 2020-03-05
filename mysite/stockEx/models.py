@@ -121,6 +121,7 @@ class Stock(models.Model):
         return self.stock_symbol
     def start_settings(self, start_time):#修改date_time as start time
         self.price = 0
+        self.growth_rate = 0
         self.date_time = start_time
         self.img_roload_time = start_time
         self.save()
@@ -132,6 +133,7 @@ class Stock(models.Model):
                             price = self.price, growth_rate = self.growth_rate, stock = self)
         else:# 遊戲開始的瞬間，要給予股票初始價格
             self.price = float(random.randint(30, 700))
+            return
         # 更新價格、時間
         growth_rate = random.normalvariate(0, 1/3)
         while (growth_rate > 0.4 or growth_rate < -0.35):#設定上下限 避免過度極端

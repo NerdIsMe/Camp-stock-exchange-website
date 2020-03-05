@@ -30,7 +30,7 @@ d = checkTime(d);
 m = checkTime(m);
 s = checkTime(s);
 document.getElementById('txt').innerHTML = 
-y +'/' + mon +'/'+ d+ ' ' + h + ":" + m + ":" + s;
+h + ":" + m + ":" + s + " " + y +'/' + mon +'/'+ d;
 
 var t = setTimeout(startTime, 500);
 }

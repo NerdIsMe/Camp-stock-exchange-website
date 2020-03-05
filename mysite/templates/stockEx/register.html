@@ -1,25 +1,39 @@
 <!DOCTYPE html>
+{%load static%}
 <head>
     <meta charset="utf-8">
     <title>註冊</title>
+    <link rel=stylesheet type="text/css" href="{%static "css/main.css" %}">
+
 </head>
 
 <body>
-    <h2>建立你個股票帳戶</h2>
-    <form action = '' method="POST"> {% csrf_token %}
-        <table>
-            <tr>
-                <td>第{{user_data.team}}小隊</td>
-                <td>  姓名：{{user_data.name}}</td>
-            </tr>
+    <header id="header">
+        <div class="inner">
+            <a href="/home/" class="logo">IMDB電影投資</a>
+            <nav id="nav">
+                <a href="/accounts/login/">登入</a>
+            </nav>
+        </div>
+    </header>
 
-        </table>
-        {{new_user.as_ul}}
-        <td><input type="submit" value="註冊"></td>
-    </form>
-    <br>
+    <div id='register_form'>
+        <h2>建立個人股票帳戶</h2>
+        <form action = '' method="POST"> {% csrf_token %}
+            <table align="left">
+                <tr>
+                    <td>第幾小隊：</td>
+                    <td>{{user_data.team}}小隊</td>
+                </tr>
+                <tr>
+                    <td>真實姓名：</td>
+                    <td>{{user_data.name}}</td>
+                </tr>
 
-    <p>已經有帳戶了？</p>
-    <a href="../login/">按此登入</a>
-   
+            </table>
+            {{new_user.as_p}}
+            <td><input type="submit" value="註冊" id = 'login_button'></td>
+        </form>
+    </div>
+    
 </body>

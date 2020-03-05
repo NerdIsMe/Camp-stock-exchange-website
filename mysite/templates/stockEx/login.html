@@ -1,25 +1,37 @@
 <!DOCTYPE html>
+{%load static%}
 <head>
     <meta charset="utf-8">
-    <title>IMDB 電影投資</title>
+    <title>登入</title>
+    <link rel=stylesheet type="text/css" href="{%static "css/main.css" %}">
+
 </head>
 
 <body>
-    <h2>登入</h2>
-    <form action="" method="POST"> {% csrf_token %}
-        <table>
-            <tr>
-                <td><label id = 'username' name='username'>帳號：</label></td>
-                <td>{{form.username}}</td>
-            </tr>
-            <tr>
-                <td><label id = 'password' name='password'>密碼：</label></td>
-                <td>{{form.password}}</td>
-            </tr>       
-        </table>
-        <input type="submit" value="登入">
-    </form>
-    {% if login_failed %}
-        <p style="color: red;">帳號或密碼錯誤，請重新登入</p>
-    {% endif %}
+    <header id="header">
+        <div class="inner">
+            <a href="/home/" class="logo">IMDB電影投資</a>
+        </div>
+    </header>
+
+    <div id="login_form">
+        <form action="" method="POST" > {% csrf_token %}
+            <h2>登入</h2>
+            <table >
+                <tr>
+                    <td><label id = 'username' name='username'>帳號：</label></td>
+                    <td>{{form.username}}</td>
+                </tr>
+                <tr>
+                    <td><label id = 'password' name='password'>密碼：</label></td>
+                    <td>{{form.password}}</td>
+                </tr>
+            </table>
+            <a href="/accounts/register/">建立帳戶</a>
+            <input type="submit" id = 'login_button' class = "button alt" name = 'login' value="登入">
+        </form>
+        {% if login_failed %}
+            <p>帳號或密碼錯誤，請重新輸入</p>
+        {% endif %}
+    </div>
 </body>
